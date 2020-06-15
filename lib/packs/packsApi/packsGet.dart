@@ -32,7 +32,7 @@ Future getPacks({
 
     print('RESPONSE: $RESP');
 
-    return RESP.toList();
+    return response.data.toList();
   } else {
     throw Exception('Failed to load post');
   }
