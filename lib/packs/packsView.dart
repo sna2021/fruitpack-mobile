@@ -2,8 +2,20 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart' show DragStartBehavior;
+import 'package:flutter_html/flutter_html.dart';
 import 'package:fruitpackmobile/packs/packsApi/packsGet.dart';
 import '../colors.dart';
+import 'package:html/parser.dart';
+
+//here goes the function
+
+String _parseHtmlString(String htmlString) {
+  var document = parse(htmlString);
+
+  String parsedString = parse(document.body.text).documentElement.text;
+
+  return parsedString;
+}
 
 class PacksView extends StatefulWidget {
   const PacksView({Key key}) : super(key: key);
@@ -19,6 +31,13 @@ class PacksViewState extends State<PacksView> {
   List _packs;
   bool _isLoadingPacks = true;
   bool get isPacks => _packs != null;
+
+  @override
+  void initState() {
+    super.initState();
+
+    handleGetPacks();
+  }
 
   void handleGetPacks() async {
     setState(() {
@@ -60,7 +79,7 @@ class PacksViewState extends State<PacksView> {
         child: Form(
           key: _formKey,
           child: Container(
-            margin: EdgeInsets.symmetric(vertical: 8, horizontal: 8),
+            margin: EdgeInsets.symmetric(vertical: 0, horizontal: 8),
             child: Scrollbar(
               child: SingleChildScrollView(
                 dragStartBehavior: DragStartBehavior.down,
@@ -68,24 +87,40 @@ class PacksViewState extends State<PacksView> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    Container(
-                      child: Padding(
-                        padding: EdgeInsets.only(top: 32),
-                        child: Text(
-                          'НАШИ СМУЗИ',
-                          style: TextStyle(
-                              fontWeight: FontWeight.bold, fontSize: 24),
-                        ),
+                    Padding(
+                      padding: EdgeInsets.only(top: 32),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          IconButton(
+                            onPressed: handleGetPacks,
+                            icon: Icon(Icons.arrow_back),
+                            iconSize: 20,
+                          ),
+                          Text(
+                            'НАШИ СМУЗИ',
+                            style: TextStyle(
+                                fontWeight: FontWeight.bold, fontSize: 24),
+                          ),
+                          IconButton(
+                            onPressed: handleGetPacks,
+                            icon: Icon(Icons.arrow_forward),
+                            iconSize: 20,
+                          ),
+                        ],
                       ),
                     ),
                     Container(
-                      margin: EdgeInsets.only(top: 8.0),
-                      height: 560,
+                      margin:
+                          EdgeInsets.symmetric(vertical: 8.0, horizontal: 8),
+                      height: MediaQuery.of(context).size.height - 16 * 6,
+                      width: MediaQuery.of(context).size.width,
                       child: _isLoadingPacks
                           ? buildSpinner()
                           : ListView.builder(
                               scrollDirection: Axis.horizontal,
                               itemCount: isPacks ? _packs.length : 1,
+
                               itemBuilder: (context, i) {
                                 final item = _packs[i];
                                 final name = item['name'];
@@ -94,7 +129,10 @@ class PacksViewState extends State<PacksView> {
                                 final description = item['description'];
 
                                 return Container(
-                                  margin: EdgeInsets.symmetric(
+                                  width: MediaQuery.of(context).size.width -
+                                      16 * 2,
+                                  margin: EdgeInsets.only(right: 16),
+                                  padding: EdgeInsets.symmetric(
                                       vertical: 8.0, horizontal: 8),
                                   decoration: BoxDecoration(
                                     border: Border.all(
@@ -106,13 +144,17 @@ class PacksViewState extends State<PacksView> {
                                         BorderRadius.all(Radius.circular(8.0)),
                                   ),
                                   child: Column(
-                                    mainAxisSize: MainAxisSize.min,
+                                    mainAxisSize: MainAxisSize.max,
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
                                     children: [
                                       Container(
                                         margin: EdgeInsets.symmetric(
-                                            vertical: 16.0, horizontal: 8),
-                                        height: 240,
-                                        width: 220,
+                                            vertical: 8.0, horizontal: 8),
+                                        height:
+                                            MediaQuery.of(context).size.height *
+                                                .4,
+                                        //width: 100,
                                         child: logo != null
                                             ? CachedNetworkImage(
                                                 imageUrl: logo,
@@ -122,7 +164,7 @@ class PacksViewState extends State<PacksView> {
                                                   decoration: BoxDecoration(
                                                     image: DecorationImage(
                                                       image: imageProvider,
-                                                      fit: BoxFit.cover,
+                                                      fit: BoxFit.fitHeight,
                                                     ),
                                                   ),
                                                 ),
@@ -150,21 +192,36 @@ class PacksViewState extends State<PacksView> {
                                         child: Text(cost),
                                       ),
                                       Container(
-                                        margin: EdgeInsets.all(4.0),
-                                        width: 200.0,
-                                        child: Text(description),
-                                      ),
-                                      Container(
-                                        child: RaisedButton(
-                                          onPressed: handleGetPacks,
-                                          child: Text('Добавить в корзину'),
+                                        margin: EdgeInsets.symmetric(
+                                            horizontal: 4.0, vertical: 16),
+                                        width:
+                                            MediaQuery.of(context).size.width *
+                                                0.8,
+                                        padding: EdgeInsets.symmetric(
+                                            horizontal: 12),
+                                        child: Text(
+                                          _parseHtmlString(description),
+                                          textAlign: TextAlign.justify,
+                                          overflow: TextOverflow.ellipsis,
+                                          maxLines: 3,
+                                          softWrap: false,
                                         ),
                                       ),
-                                      Container(
-                                        child: RaisedButton(
-                                          onPressed: handleGetPacks,
-                                          child: Text('Подробнее'),
-                                        ),
+                                      Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.end,
+                                        children: <Widget>[
+                                          IconButton(
+                                            onPressed: handleGetPacks,
+                                            icon: Icon(Icons.info_outline),
+                                            iconSize: 24,
+                                          ),
+                                          IconButton(
+                                            onPressed: handleGetPacks,
+                                            icon: Icon(Icons.add_shopping_cart),
+                                            iconSize: 24,
+                                          )
+                                        ],
                                       )
                                     ],
                                   ),
