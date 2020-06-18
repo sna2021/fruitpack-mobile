@@ -6,12 +6,10 @@ import 'package:flutter_html/flutter_html.dart';
 import 'package:fruitpackmobile/packs/packsApi/packsGet.dart';
 import '../colors.dart';
 import 'package:html/parser.dart';
-
-//here goes the function
+import 'models.dart';
 
 String _parseHtmlString(String htmlString) {
   var document = parse(htmlString);
-
   String parsedString = parse(document.body.text).documentElement.text;
 
   return parsedString;
@@ -28,7 +26,7 @@ class PacksViewState extends State<PacksView> {
   final _scaffoldKey = GlobalKey<ScaffoldState>();
   final searchController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
-  List _packs;
+  List<Pack> _packs;
   bool _isLoadingPacks = true;
   bool get isPacks => _packs != null;
 
@@ -43,7 +41,7 @@ class PacksViewState extends State<PacksView> {
     setState(() {
       _isLoadingPacks = true;
     });
-    List res = await getPacks();
+    List<Pack> res = await getPacks();
 
     print('try RESPONSE $res');
 
@@ -123,10 +121,10 @@ class PacksViewState extends State<PacksView> {
 
                               itemBuilder: (context, i) {
                                 final item = _packs[i];
-                                final name = item['name'];
-                                final cost = item['cost'];
-                                final logo = item['logo'];
-                                final description = item['description'];
+                                final name = item.name;
+                                final cost = item.cost;
+                                final logo = item.logo;
+                                final description = item.description;
 
                                 return Container(
                                   width: MediaQuery.of(context).size.width -
@@ -157,7 +155,7 @@ class PacksViewState extends State<PacksView> {
                                         //width: 100,
                                         child: logo != null
                                             ? CachedNetworkImage(
-                                                imageUrl: logo,
+                                                imageUrl: '$logo',
                                                 imageBuilder:
                                                     (context, imageProvider) =>
                                                         Container(
